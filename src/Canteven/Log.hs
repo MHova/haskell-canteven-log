@@ -7,7 +7,7 @@
   general logging monad, but for now, there are no monads here.
 -}
 module Canteven.Log (
-  canteven
+  setupLogging
 ) where
 
 import Control.Applicative ((<$>), (<*>))
@@ -29,17 +29,17 @@ import qualified Data.Text as T
   Read the program configuration, using the @canteven-config@, and set
   up @hslogger@.
 -}
-canteven :: IO ()
-canteven =
-  setupLogging =<< Config.canteven
+setupLogging :: IO ()
+setupLogging =
+  installConfig =<< Config.canteven
 
 
 {- |
   Do all of the things that it takes to get logging set up the way we
   want it.
 -}
-setupLogging :: LoggingConfig -> IO ()
-setupLogging LoggingConfig {logfile, level = LP level, loggers} = do
+installConfig :: LoggingConfig -> IO ()
+installConfig LoggingConfig {logfile, level = LP level, loggers} = do
   fileHandlers <-
     case logfile of
       Nothing -> return []
