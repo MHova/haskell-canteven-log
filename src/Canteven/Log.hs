@@ -57,4 +57,4 @@ installConfig LoggingConfig {logfile, level = LP level, loggers} = do
     ]
   where
     tweak h = setFormatter h (simpleLogFormatter logFormat)
-    logFormat = "$prio [$tid] [$time] $loggername - $msg"
+    logFormat = "[$time] $prio $loggername[$tid]: $msg"
