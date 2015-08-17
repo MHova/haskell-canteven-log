@@ -20,6 +20,8 @@ library
   exposed-modules:     
     Canteven.Log
   -- other-modules:       
+  other-modules:
+    Canteven.Log.Types
   -- other-extensions:    
   build-depends:
     aeson,
