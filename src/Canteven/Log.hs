@@ -53,7 +53,7 @@ installConfig LoggingConfig {logfile, level = LP level, loggers} = do
   updateGlobalLogger "" (setLevel level . setHandlers handlers)
   sequence_ [
       updateGlobalLogger loggerName (setLevel loggerLevel) |
-      LoggerDetails {loggerName, loggerLevel = LP loggerLevel} <- loggers
+      LoggerDetails {loggerName=Just loggerName, loggerLevel = LP loggerLevel} <- loggers
     ]
   where
     tweak h = setFormatter h (simpleLogFormatter logFormat)

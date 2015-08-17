@@ -59,18 +59,30 @@ instance FromJSON LogPriority where
 
 
 {- |
-  A way to set more fined-grained configuration for specific loggers.
+  A way to set more fined-grained configuration for specific log messages.
+
+  Name, package, and module are "selectors" that identify which messages should
+  be configured.
+
+  'loggerLevel' is a "minimum priority". Messages that aren't at least as severe
+  as this will not be logged.
+
+  hslogger only supports "name". monad-logger supports all three.
 -}
 data LoggerDetails =
   LoggerDetails {
-    loggerName :: String,
+    loggerName :: Maybe String,
+    loggerPackage :: Maybe String,
+    loggerModule :: Maybe String,
     loggerLevel :: LogPriority
   }
 
 instance FromJSON LoggerDetails where
   parseJSON (Object details) = do
-    loggerName <- details .: "logger"
+    loggerName <- details .:? "logger"
     loggerLevel <- details .: "level"
-    return LoggerDetails {loggerName, loggerLevel}
+    loggerModule <- details .:? "module"
+    loggerPackage <- details .:? "package"
+    return LoggerDetails {loggerName, loggerPackage, loggerModule, loggerLevel}
   parseJSON value =
     fail $ "Couldn't parse logger details from value " ++ show value
