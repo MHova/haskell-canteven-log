@@ -21,6 +21,7 @@ import Control.Monad.Logger (LogSource,
     LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError, LevelOther),
     LoggingT(runLoggingT))
 import Data.Char (toUpper)
+import Data.List (dropWhileEnd, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
 import Data.Monoid ((<>), mempty)
 import Data.Time.Format (defaultTimeLocale, formatTime)
@@ -88,13 +89,18 @@ configPermits LoggingConfig {level=LP defaultLP, loggers} = runFilters
         loc src level =
         if matches (T.pack <$> loggerName) src &&
            matches loggerPackage (loc_package loc) &&
-           matches loggerModule (loc_module loc)
+           matchesGlob loggerModule (loc_module loc)
         then Just (toHSLogPriority level >= loggerLevel)
         else Nothing
     -- It's considered a "match" if either the specification is absent (matches
     -- everything), or the specification is given and matches the target.
     matches Nothing _ = True
     matches (Just s1) s2 = s1 == s2
+    -- Not real glob matching.
+    matchesGlob Nothing _ = True
+    matchesGlob (Just pattern) candidate
+        | "*" `isSuffixOf` pattern = dropWhileEnd (=='*') pattern `isPrefixOf` candidate
+        | otherwise = pattern == candidate
     runFilters loc src level =
         -- default to the defaultLP
         fromMaybe (toHSLogPriority level >= defaultLP) $

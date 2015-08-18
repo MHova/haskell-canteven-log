@@ -62,7 +62,9 @@ instance FromJSON LogPriority where
   A way to set more fined-grained configuration for specific log messages.
 
   Name, package, and module are "selectors" that identify which messages should
-  be configured.
+  be configured. Any absent "selectors" match everything. Name and package have to
+  match exactly. Module can either match exactly, or -- if the config specifies a
+  module ending in an asterisk -- match a prefix.
 
   'loggerLevel' is a "minimum priority". Messages that aren't at least as severe
   as this will not be logged.
