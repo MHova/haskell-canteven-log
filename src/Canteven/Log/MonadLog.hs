@@ -164,13 +164,14 @@ cantevenLogFormat loc src level msg t tid =
     (if T.null src
         then mempty
         else toLogStr src) <>
-    "@" <> toLogStr (loc_module loc) <> "[" <>
+    "@" <> toLogStr (loc_package loc ++ ":" ++ loc_module loc) <>
+    "[" <>
     toLogStr (show tid) <> "]: " <>
     msg <> " (" <> toLogStr (S8.pack fileLocStr) <> ")\n"
   where
     fmtTime = formatTime defaultTimeLocale "%F %X %Z"
-    fileLocStr = loc_package loc ++
-      ' ' : loc_filename loc ++ ':' : line loc ++ ':' : char loc
+    fileLocStr =
+        loc_filename loc ++ ':' : line loc ++ ':' : char loc
       where
         line = show . fst . loc_start
         char = show . snd . loc_start
