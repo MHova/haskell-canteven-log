@@ -8,6 +8,7 @@ module Canteven.Log.Types (
     ) where
 
 import Data.Aeson (Value(String, Object), (.:?), (.!=), (.:))
+import Data.Maybe (catMaybes, listToMaybe)
 import Data.Yaml (FromJSON(parseJSON))
 import Control.Applicative ((<$>), (<*>))
 import System.Log (Priority(INFO))
@@ -81,7 +82,12 @@ data LoggerDetails =
 
 instance FromJSON LoggerDetails where
   parseJSON (Object details) = do
-    loggerName <- details .:? "logger"
+    loggerName <- do
+        names <- catMaybes <$> sequence [
+            details .:? "logger",
+            details .:? "source",
+            details .:? "name"]
+        return $ listToMaybe names
     loggerLevel <- details .: "level"
     loggerModule <- details .:? "module"
     loggerPackage <- details .:? "package"
