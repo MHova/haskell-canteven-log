@@ -16,7 +16,8 @@ import Control.Monad.Logger (LogSource, LogLevel(LevelOther),
     LoggingT(runLoggingT))
 import Data.Char (toUpper)
 import Data.Monoid ((<>), mempty)
-import Data.Time.Clock (UTCTime, getCurrentTime)
+import Data.Time.Format (defaultTimeLocale, formatTime)
+import Data.Time.LocalTime (ZonedTime, getZonedTime)
 import Language.Haskell.TH (Loc(loc_filename, loc_package, loc_module,
     loc_start))
 import System.Directory (createDirectoryIfMissing)
@@ -57,7 +58,7 @@ cantevenOutput
     -> LogStr
     -> IO ()
 cantevenOutput LoggingConfig {logfile} loc src level msg = do
-    time <- getCurrentTime
+    time <- getZonedTime
     threadId <- myThreadId
     handle <- maybe (return stdout) openFileForLogging logfile
     S8.hPutStr handle . fromLogStr $ cantevenLogFormat loc src level msg time threadId
@@ -90,11 +91,11 @@ cantevenLogFormat
     -> LogSource
     -> LogLevel
     -> LogStr
-    -> UTCTime
+    -> ZonedTime
     -> ThreadId
     -> LogStr
 cantevenLogFormat loc src level msg t tid =
-    "[" <> toLogStr (show t) <> "] " <>
+    "[" <> toLogStr (fmtTime t) <> "] " <>
     cantevenLogLevelStr level <>
     " " <>
     (if T.null src
@@ -104,6 +105,7 @@ cantevenLogFormat loc src level msg t tid =
     toLogStr (show tid) <> "]: " <>
     msg <> " (" <> toLogStr (S8.pack fileLocStr) <> ")\n"
   where
+    fmtTime = formatTime defaultTimeLocale "%F %X %Z"
     fileLocStr = loc_package loc ++
       ' ' : loc_filename loc ++ ':' : line loc ++ ':' : char loc
       where

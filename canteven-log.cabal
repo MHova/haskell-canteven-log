@@ -35,7 +35,7 @@ library
     monad-logger,
     template-haskell,
     text,
-    time,
+    time >= 1.5 && <1.6,
     transformers,
     yaml
   hs-source-dirs:      src
