@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.MonadLog (
+    LoggerTImpl,
     cantevenLogFormat,
     getRunCantevenLoggingT,
     getCantevenOutput,
@@ -38,6 +39,8 @@ import System.Log.Logger (Priority(DEBUG, INFO, NOTICE, WARNING, ERROR,
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.Text as T
 
+type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
+
 runCantevenLoggingT
     :: (MonadIO io)
     => LoggingConfig
@@ -55,7 +58,7 @@ getRunCantevenLoggingT =
 
 getCantevenOutput
     :: (Functor io, MonadIO io)
-    => io (Loc -> LogSource -> LogLevel -> LogStr -> IO ())
+    => io LoggerTImpl
 getCantevenOutput =
     cantevenOutput <$> liftIO canteven
 
