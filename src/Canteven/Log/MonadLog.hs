@@ -1,6 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.MonadLog (
+    cantevenLogFormat,
     getRunCantevenLoggingT,
     getCantevenOutput,
     runCantevenLoggingDefaultT,
