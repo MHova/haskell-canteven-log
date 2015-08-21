@@ -1,8 +1,10 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.MonadLog (
-    cantevenOutput,
+    LoggerTImpl,
+    cantevenLogFormat,
     getRunCantevenLoggingT,
+    getCantevenOutput,
     runCantevenLoggingDefaultT,
     ) where
 
@@ -37,6 +39,8 @@ import System.Log.Logger (Priority(DEBUG, INFO, NOTICE, WARNING, ERROR,
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.Text as T
 
+type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
+
 runCantevenLoggingT
     :: (MonadIO io)
     => LoggingConfig
@@ -51,6 +55,12 @@ getRunCantevenLoggingT
     => io1 (LoggingT io2 a -> io2 a)
 getRunCantevenLoggingT =
     runCantevenLoggingT <$> liftIO canteven
+
+getCantevenOutput
+    :: (Functor io, MonadIO io)
+    => io LoggerTImpl
+getCantevenOutput =
+    cantevenOutput <$> liftIO canteven
 
 -- | Run a LoggingT, using the canteven logging format, with the default logging
 -- configuration.
