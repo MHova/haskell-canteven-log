@@ -32,7 +32,8 @@ import Language.Haskell.TH (Loc(loc_filename, loc_package, loc_module,
     loc_start))
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath (dropFileName)
-import System.IO (Handle, IOMode(AppendMode), openFile, stdout)
+import System.IO (Handle, IOMode(AppendMode), openFile, stdout, hSetBuffering,
+  BufferMode(LineBuffering))
 import System.Log.FastLogger (LogStr, fromLogStr, toLogStr)
 import System.Log.Logger (Priority(DEBUG, INFO, NOTICE, WARNING, ERROR,
     NOTICE, CRITICAL, ALERT, EMERGENCY))
@@ -82,6 +83,7 @@ cantevenOutput config@LoggingConfig {logfile} loc src level msg =
     time <- getZonedTime
     threadId <- myThreadId
     handle <- maybe (return stdout) openFileForLogging logfile
+    hSetBuffering handle LineBuffering
     S8.hPutStr handle . fromLogStr $ cantevenLogFormat loc src level msg time threadId
 
 -- | Figure out whether a particular log message is permitted, given a
