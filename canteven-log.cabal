@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                canteven-log
-version:             0.3.0.1
+version:             0.3.0.2
 synopsis:            A canteven way of setting up logging for your program.
 -- description:
 homepage:            https://github.com/SumAll/haskell-canteven-log
