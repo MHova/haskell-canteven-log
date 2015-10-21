@@ -46,7 +46,9 @@ runCantevenLoggingT
     => LoggingConfig
     -> LoggingT io a
     -> io a
-runCantevenLoggingT config = (`runLoggingT` cantevenOutput config)
+runCantevenLoggingT config action = do
+    handle <- liftIO $ setupHandle config
+    runLoggingT action (cantevenOutput config handle)
 
 -- | Get the logging config using canteven, and produce a way to use that
 -- logging config to run a LoggingT.
@@ -60,7 +62,12 @@ getCantevenOutput
     :: (Functor io, MonadIO io)
     => io LoggerTImpl
 getCantevenOutput =
-    cantevenOutput <$> liftIO canteven
+    uncurry cantevenOutput <$> liftIO setupLogger
+  where
+    setupLogger = do
+        config <- canteven
+        handle <- setupHandle config
+        return (config, handle)
 
 -- | Run a LoggingT, using the canteven logging format, with the default logging
 -- configuration.
@@ -72,16 +79,16 @@ runCantevenLoggingDefaultT = runCantevenLoggingT defaultLogging
 
 cantevenOutput
     :: LoggingConfig
+    -> Handle
     -> Loc
     -> LogSource
     -> LogLevel
     -> LogStr
     -> IO ()
-cantevenOutput config@LoggingConfig {logfile} loc src level msg =
+cantevenOutput config handle loc src level msg =
     when (configPermits config loc src level) $ do
     time <- getZonedTime
     threadId <- myThreadId
-    handle <- maybe (return stdout) openFileForLogging logfile
     S8.hPutStr handle . fromLogStr $ cantevenLogFormat loc src level msg time threadId
     hFlush handle
 
@@ -191,3 +198,7 @@ openFileForLogging :: FilePath -> IO Handle
 openFileForLogging filename = do
     createDirectoryIfMissing True (dropFileName filename)
     openFile filename AppendMode
+
+setupHandle :: LoggingConfig -> IO Handle
+setupHandle LoggingConfig {logfile} =
+    maybe (return stdout) openFileForLogging logfile
