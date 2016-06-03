@@ -187,7 +187,7 @@ cantevenLogFormat loc src level msg t tid =
     toLogStr (show tid) <> "]: " <>
     msg <> " (" <> toLogStr (S8.pack fileLocStr) <> ")\n"
   where
-    fmtTime = formatTime defaultTimeLocale "%F %X %Z"
+    fmtTime = formatTime defaultTimeLocale "%Y-%m-%dT%H:%M:%S.%q %Z"
     fileLocStr =
         loc_filename loc ++ ':' : line loc ++ ':' : char loc
       where
