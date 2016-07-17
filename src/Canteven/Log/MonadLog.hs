@@ -2,10 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.MonadLog (
     LoggerTImpl,
-    cantevenLogFormat,
-    getRunCantevenLoggingT,
     getCantevenOutput,
-    runCantevenLoggingDefaultT,
     ) where
 
 import Canteven.Config (canteven)
@@ -13,15 +10,13 @@ import Canteven.Log.Types (LoggingConfig(LoggingConfig, logfile,
     level, loggers),
     LoggerDetails(LoggerDetails, loggerName, loggerPackage,
     loggerModule, loggerLevel),
-    LogPriority(LP),
-    defaultLogging)
+    LogPriority(LP))
 import Control.Applicative ((<$>))
 import Control.Concurrent (ThreadId, myThreadId)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Logger (LogSource,
-    LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError, LevelOther),
-    LoggingT(runLoggingT))
+    LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError, LevelOther))
 import Data.Char (toUpper)
 import Data.List (dropWhileEnd, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
@@ -41,23 +36,6 @@ import qualified Data.Text as T
 
 type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
-runCantevenLoggingT
-    :: (MonadIO io)
-    => LoggingConfig
-    -> LoggingT io a
-    -> io a
-runCantevenLoggingT config action = do
-    handle <- liftIO $ setupHandle config
-    runLoggingT action (cantevenOutput config handle)
-
--- | Get the logging config using canteven, and produce a way to use that
--- logging config to run a LoggingT.
-getRunCantevenLoggingT
-    :: (Functor io1, MonadIO io1, MonadIO io2)
-    => io1 (LoggingT io2 a -> io2 a)
-getRunCantevenLoggingT =
-    runCantevenLoggingT <$> liftIO canteven
-
 getCantevenOutput
     :: (Functor io, MonadIO io)
     => io LoggerTImpl
@@ -68,14 +46,6 @@ getCantevenOutput =
         config <- canteven
         handle <- setupHandle config
         return (config, handle)
-
--- | Run a LoggingT, using the canteven logging format, with the default logging
--- configuration.
-runCantevenLoggingDefaultT
-    :: (MonadIO io)
-    => LoggingT io a
-    -> io a
-runCantevenLoggingDefaultT = runCantevenLoggingT defaultLogging
 
 cantevenOutput
     :: LoggingConfig
