@@ -25,7 +25,6 @@ source-repository head
 
 library
   exposed-modules:
-    Canteven.Log,
     Canteven.Log.MonadLog
   other-modules:
     Canteven.Log.Types
@@ -38,7 +37,6 @@ library
     directory,
     fast-logger,
     filepath,
-    hslogger,
     monad-logger,
     template-haskell,
     text,

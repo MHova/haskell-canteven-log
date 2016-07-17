@@ -1,22 +1,21 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.Types (
-    LogPriority(..),
     LoggerDetails(..),
     LoggingConfig(..),
     defaultLogging,
     ) where
 
 import Control.Applicative ((<$>), (<*>))
+import Control.Monad.Logger (LogLevel(LevelDebug, LevelInfo, LevelWarn,
+    LevelError, LevelOther))
 import Data.Aeson (Value(String, Object), (.:?), (.!=), (.:))
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Yaml (FromJSON(parseJSON))
-import System.Log (Priority(INFO))
-import qualified Data.Text as T
 
 data LoggingConfig =
   LoggingConfig {
-    level :: LogPriority,
+    level :: LogLevel,
     logfile :: Maybe FilePath,
     loggers :: [LoggerDetails]
   }
@@ -27,7 +26,7 @@ instance FromJSON LoggingConfig where
     case mLogging of
       Nothing -> return defaultLogging
       Just logging -> LoggingConfig
-        <$> logging .:? "level" .!= LP INFO
+        <$> (unLP <$> (logging .:? "level" .!= LP LevelInfo))
         <*> logging .:? "logfile"
         <*> logging .:? "loggers" .!= []
 
@@ -41,22 +40,25 @@ instance FromJSON LoggingConfig where
 -}
 defaultLogging :: LoggingConfig
 defaultLogging = LoggingConfig {
-    level = LP INFO,
+    level = LevelInfo,
     logfile = Nothing,
     loggers = []
   }
 
 
 {- |
-  A wrapper for Priority, so we can avoid orphan instances
+  A wrapper for LogLevel, so we can avoid orphan instances
 -}
-newtype LogPriority = LP Priority
+newtype LogPriority = LP {unLP :: LogLevel}
 
 instance FromJSON LogPriority where
-  parseJSON (String s) = case reads (T.unpack s) of
-    [(priority, "")] -> return (LP priority)
-    _ -> fail $ "couldn't parse Priority from string " ++ show s
-  parseJSON value = fail $ "Couldn't parse Priority from value " ++ show value
+  parseJSON (String "DEBUG" ) = return (LP LevelDebug)
+  parseJSON (String "INFO" ) = return (LP LevelInfo)
+  parseJSON (String "WARN" ) = return (LP LevelWarn)
+  parseJSON (String "WARNING" ) = return (LP LevelWarn)
+  parseJSON (String "ERROR" ) = return (LP LevelError)
+  parseJSON (String s) = return (LP (LevelOther s))
+  parseJSON value = fail $ "Couldn't parse LogLevel from value " ++ show value
 
 
 {- |
@@ -77,7 +79,7 @@ data LoggerDetails =
     loggerName :: Maybe String,
     loggerPackage :: Maybe String,
     loggerModule :: Maybe String,
-    loggerLevel :: LogPriority
+    loggerLevel :: LogLevel
   }
 
 instance FromJSON LoggerDetails where
@@ -88,7 +90,7 @@ instance FromJSON LoggerDetails where
             details .:? "source",
             details .:? "name"]
         return $ listToMaybe names
-    loggerLevel <- details .: "level"
+    loggerLevel <- unLP <$> details .: "level"
     loggerModule <- details .:? "module"
     loggerPackage <- details .:? "package"
     return LoggerDetails {loggerName, loggerPackage, loggerModule, loggerLevel}
