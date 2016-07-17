@@ -3,9 +3,12 @@
 module Canteven.Log.MonadLog (
     LoggerTImpl,
     getCantevenOutput,
+
+    {- Reexports -}
+    LoggingConfig(level, logfile, loggers),
+    LoggerDetails(loggerName, loggerPackage, loggerModule, loggerLevel)
     ) where
 
-import Canteven.Config (canteven)
 import Canteven.Log.Types (LoggingConfig(LoggingConfig, logfile,
     level, loggers),
     LoggerDetails(LoggerDetails, loggerName, loggerPackage,
@@ -34,12 +37,12 @@ type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
 getCantevenOutput
     :: (Functor io, MonadIO io)
-    => io LoggerTImpl
-getCantevenOutput =
+    => LoggingConfig
+    -> io LoggerTImpl
+getCantevenOutput config =
     uncurry cantevenOutput <$> liftIO setupLogger
   where
     setupLogger = do
-        config <- canteven
         handle <- setupHandle config
         return (config, handle)
 
