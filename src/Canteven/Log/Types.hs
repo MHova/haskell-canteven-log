@@ -7,10 +7,10 @@ module Canteven.Log.Types (
     defaultLogging,
     ) where
 
+import Control.Applicative ((<$>), (<*>))
 import Data.Aeson (Value(String, Object), (.:?), (.!=), (.:))
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Yaml (FromJSON(parseJSON))
-import Control.Applicative ((<$>), (<*>))
 import System.Log (Priority(INFO))
 import qualified Data.Text as T
 
