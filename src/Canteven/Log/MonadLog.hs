@@ -2,26 +2,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Canteven.Log.MonadLog (
     LoggerTImpl,
-    cantevenLogFormat,
-    getRunCantevenLoggingT,
     getCantevenOutput,
-    runCantevenLoggingDefaultT,
+
+    {- Reexports -}
+    LoggingConfig(level, logfile, loggers),
+    LoggerDetails(loggerName, loggerPackage, loggerModule, loggerLevel)
     ) where
 
-import Canteven.Config (canteven)
 import Canteven.Log.Types (LoggingConfig(LoggingConfig, logfile,
     level, loggers),
     LoggerDetails(LoggerDetails, loggerName, loggerPackage,
-    loggerModule, loggerLevel),
-    LogPriority(LP),
-    defaultLogging)
+    loggerModule, loggerLevel))
 import Control.Applicative ((<$>))
 import Control.Concurrent (ThreadId, myThreadId)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import Control.Monad.Logger (LogSource,
-    LogLevel(LevelDebug, LevelInfo, LevelWarn, LevelError, LevelOther),
-    LoggingT(runLoggingT))
+import Control.Monad.Logger (LogSource, LogLevel(LevelOther))
 import Data.Char (toUpper)
 import Data.List (dropWhileEnd, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
@@ -34,48 +30,21 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath (dropFileName)
 import System.IO (Handle, IOMode(AppendMode), openFile, stdout, hFlush)
 import System.Log.FastLogger (LogStr, fromLogStr, toLogStr)
-import System.Log.Logger (Priority(DEBUG, INFO, NOTICE, WARNING, ERROR,
-    NOTICE, CRITICAL, ALERT, EMERGENCY))
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.Text as T
 
 type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
-runCantevenLoggingT
-    :: (MonadIO io)
-    => LoggingConfig
-    -> LoggingT io a
-    -> io a
-runCantevenLoggingT config action = do
-    handle <- liftIO $ setupHandle config
-    runLoggingT action (cantevenOutput config handle)
-
--- | Get the logging config using canteven, and produce a way to use that
--- logging config to run a LoggingT.
-getRunCantevenLoggingT
-    :: (Functor io1, MonadIO io1, MonadIO io2)
-    => io1 (LoggingT io2 a -> io2 a)
-getRunCantevenLoggingT =
-    runCantevenLoggingT <$> liftIO canteven
-
 getCantevenOutput
     :: (Functor io, MonadIO io)
-    => io LoggerTImpl
-getCantevenOutput =
+    => LoggingConfig
+    -> io LoggerTImpl
+getCantevenOutput config =
     uncurry cantevenOutput <$> liftIO setupLogger
   where
     setupLogger = do
-        config <- canteven
         handle <- setupHandle config
         return (config, handle)
-
--- | Run a LoggingT, using the canteven logging format, with the default logging
--- configuration.
-runCantevenLoggingDefaultT
-    :: (MonadIO io)
-    => LoggingT io a
-    -> io a
-runCantevenLoggingDefaultT = runCantevenLoggingT defaultLogging
 
 cantevenOutput
     :: LoggingConfig
@@ -99,16 +68,16 @@ cantevenOutput config handle loc src level msg =
 -- the answer given by the most specific one that matches. However, at present
 -- it just takes the first one.
 configPermits :: LoggingConfig -> Loc -> LogSource -> LogLevel -> Bool
-configPermits LoggingConfig {level=LP defaultLP, loggers} = runFilters
+configPermits LoggingConfig {level=defaultLP, loggers} = runFilters
   where
     predicates = map toPredicate loggers
     toPredicate LoggerDetails {loggerName, loggerPackage,
-                               loggerModule, loggerLevel=LP loggerLevel}
+                               loggerModule, loggerLevel=loggerLevel}
         loc src level =
         if matches (T.pack <$> loggerName) src &&
            matches loggerPackage (loc_package loc) &&
            matchesGlob loggerModule (loc_module loc)
-        then Just (toHSLogPriority level >= loggerLevel)
+        then Just (level >= loggerLevel)
         else Nothing
     -- It's considered a "match" if either the specification is absent (matches
     -- everything), or the specification is given and matches the target.
@@ -121,27 +90,11 @@ configPermits LoggingConfig {level=LP defaultLP, loggers} = runFilters
         | otherwise = pattern == candidate
     runFilters loc src level =
         -- default to the defaultLP
-        fromMaybe (toHSLogPriority level >= defaultLP) $
+        fromMaybe (level >= defaultLP) $
         -- take the first value
         listToMaybe $
         -- of the predicates that returned Just something
         mapMaybe (\p -> p loc src level) predicates
-
-
--- | Convert a monad-logger 'LogLevel' into an hslogger 'Priority'. This is
--- necessary because LoggingConfig specify Priorities rather than LogLevels.
-toHSLogPriority :: LogLevel -> Priority
-toHSLogPriority LevelDebug = DEBUG
-toHSLogPriority LevelInfo = INFO
-toHSLogPriority LevelWarn = WARNING
-toHSLogPriority LevelError = ERROR
-toHSLogPriority (LevelOther other) =
-    fromMaybe EMERGENCY $ -- unknown log levels are most critical
-    lookup (T.toLower other) [
-        ("notice", NOTICE),
-        ("critical", CRITICAL),
-        ("alert", ALERT)
-        ]
 
 
 -- | This is similar to the version defined in monad-logger (which we can't
