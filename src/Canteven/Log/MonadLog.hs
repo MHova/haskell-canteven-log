@@ -13,7 +13,6 @@ import Canteven.Log.Types (LoggingConfig(LoggingConfig, logfile,
     level, loggers),
     LoggerDetails(LoggerDetails, loggerName, loggerPackage,
     loggerModule, loggerLevel))
-import Control.Applicative ((<$>))
 import Control.Concurrent (ThreadId, myThreadId)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -21,7 +20,7 @@ import Control.Monad.Logger (LogSource, LogLevel(LevelOther))
 import Data.Char (toUpper)
 import Data.List (dropWhileEnd, isPrefixOf, isSuffixOf)
 import Data.Maybe (fromMaybe, listToMaybe, mapMaybe)
-import Data.Monoid ((<>), mempty)
+import Data.Monoid ((<>))
 import Data.Time.Format (defaultTimeLocale, formatTime)
 import Data.Time.LocalTime (ZonedTime, getZonedTime)
 import Language.Haskell.TH (Loc(loc_filename, loc_package, loc_module,
