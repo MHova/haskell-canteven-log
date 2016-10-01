@@ -70,8 +70,6 @@ instance FromJSON LogPriority where
 
   'loggerLevel' is a "minimum priority". Messages that aren't at least as severe
   as this will not be logged.
-
-  hslogger only supports "name". monad-logger supports all three.
 -}
 data LoggerDetails =
   LoggerDetails {
