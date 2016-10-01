@@ -6,7 +6,6 @@ module Canteven.Log.Types (
     defaultLogging,
     ) where
 
-import Control.Applicative ((<$>), (<*>))
 import Control.Monad.Logger (LogLevel(LevelDebug, LevelInfo, LevelWarn,
     LevelError, LevelOther))
 import Data.Aeson (Value(String, Object), (.:?), (.!=), (.:))
