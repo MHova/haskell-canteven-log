@@ -35,7 +35,7 @@ import qualified Data.Text as T
 type LoggerTImpl = Loc -> LogSource -> LogLevel -> LogStr -> IO ()
 
 getCantevenOutput
-    :: (Functor io, MonadIO io)
+    :: (MonadIO io)
     => LoggingConfig
     -> io LoggerTImpl
 getCantevenOutput config =
