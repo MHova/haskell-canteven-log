@@ -2,7 +2,7 @@
 -- documentation, see http://haskell.org/cabal/users-guide/
 
 name:                canteven-log
-version:             2.0.0.0
+version:             2.0.0.1
 synopsis:            A canteven way of setting up logging for your program.
 description:
     A library that uses <https://hackage.haskell.org/package/canteven-config canteven-config>
@@ -31,7 +31,7 @@ library
   -- other-extensions:
   build-depends:
     aeson,
-    base >= 4.8 && < 4.9,
+    base >= 4.8 && < 4.10,
     bytestring,
     directory,
     fast-logger,
@@ -39,7 +39,7 @@ library
     monad-logger,
     template-haskell,
     text,
-    time >= 1.5 && <1.6,
+    time >= 1.5 && <1.7,
     transformers,
     yaml
   hs-source-dirs:      src
