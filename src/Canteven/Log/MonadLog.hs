@@ -84,9 +84,9 @@ configPermits LoggingConfig {level=defaultLP, loggers} = runFilters
     matches (Just s1) s2 = s1 == s2
     -- Not real glob matching.
     matchesGlob Nothing _ = True
-    matchesGlob (Just pattern) candidate
-        | "*" `isSuffixOf` pattern = dropWhileEnd (=='*') pattern `isPrefixOf` candidate
-        | otherwise = pattern == candidate
+    matchesGlob (Just p) candidate
+        | "*" `isSuffixOf` p = dropWhileEnd (=='*') p `isPrefixOf` candidate
+        | otherwise = p == candidate
     runFilters loc src level =
         -- default to the defaultLP
         fromMaybe (level >= defaultLP) $
