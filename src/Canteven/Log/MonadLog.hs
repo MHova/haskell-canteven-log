@@ -5,7 +5,7 @@ module Canteven.Log.MonadLog (
     getCantevenOutput,
 
     {- Reexports -}
-    LoggingConfig(level, logfile, loggers),
+    LoggingConfig(LoggingConfig, level, logfile, loggers),
     LoggerDetails(loggerName, loggerPackage, loggerModule, loggerLevel)
     ) where
 
