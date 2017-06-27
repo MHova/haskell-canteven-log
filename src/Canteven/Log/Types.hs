@@ -4,6 +4,7 @@ module Canteven.Log.Types (
     LoggerDetails(..),
     LoggingConfig(..),
     defaultLogging,
+    newLoggingConfig,
     ) where
 
 import Control.Monad.Logger (LogLevel(LevelDebug, LevelInfo, LevelWarn,
@@ -11,6 +12,16 @@ import Control.Monad.Logger (LogLevel(LevelDebug, LevelInfo, LevelWarn,
 import Data.Aeson (Value(String, Object), (.:?), (.!=), (.:))
 import Data.Maybe (catMaybes, listToMaybe)
 import Data.Yaml (FromJSON(parseJSON))
+import Data.Text (pack)
+
+{-
+  A convenience function for creating a LoggingConfig when you just want a
+  default LoggingConfig with the specified LogLevel in String form. Useful
+  for services that read configuration directly from environment variables
+  instead of a configuration file.
+-}
+newLoggingConfig :: String -> LoggingConfig
+newLoggingConfig s = defaultLogging {level = unLP $ read s}
 
 data LoggingConfig =
   LoggingConfig {
@@ -59,6 +70,14 @@ instance FromJSON LogPriority where
   parseJSON (String s) = return (LP (LevelOther s))
   parseJSON value = fail $ "Couldn't parse LogLevel from value " ++ show value
 
+{- The provided dervived Read instance for LogLevel isn't very useful -}
+instance Read LogPriority where
+  readsPrec _ "DEBUG" = [(LP LevelDebug, "")]
+  readsPrec _ "INFO" = [(LP LevelInfo, "")]
+  readsPrec _ "WARN" = [(LP LevelWarn, "")]
+  readsPrec _ "WARNING" = [(LP LevelWarn, "")]
+  readsPrec _ "ERROR" = [(LP LevelError, "")]
+  readsPrec _ other = [(LP . LevelOther $ pack other, "")]
 
 {- |
   A way to set more fined-grained configuration for specific log messages.
