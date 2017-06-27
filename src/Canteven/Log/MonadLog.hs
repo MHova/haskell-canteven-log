@@ -6,13 +6,15 @@ module Canteven.Log.MonadLog (
 
     {- Reexports -}
     LoggingConfig(LoggingConfig, level, logfile, loggers),
-    LoggerDetails(loggerName, loggerPackage, loggerModule, loggerLevel)
+    LoggerDetails(loggerName, loggerPackage, loggerModule, loggerLevel),
+    newLoggingConfig,
     ) where
 
 import Canteven.Log.Types (LoggingConfig(LoggingConfig, logfile,
     level, loggers),
     LoggerDetails(LoggerDetails, loggerName, loggerPackage,
-    loggerModule, loggerLevel))
+    loggerModule, loggerLevel),
+    newLoggingConfig)
 import Control.Concurrent (ThreadId, myThreadId)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
